@@ -1,0 +1,9 @@
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: demo-peer-policy
+  namespace: demo-app
+spec:
+## All svc in this ns
+  mtls:
+    mode: STRICT
