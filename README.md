@@ -244,5 +244,5 @@ root@controlplane ~ ➜  kubectl exec curl-szftp -n demo-app -c curl  -- curl -s
 
 Prom and grafana are deployed with istio
 
-jeadger tracer
+jaeger tracer
 
