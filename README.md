@@ -112,6 +112,76 @@ After deploying the addon you'll need `kiali-svc.yaml`
 
   - Above fully qualified domain name is recommended incase service is in another ns.
 
+## ServiceEntry
+
+- In case you have an external service outside the cluster that you may need to migrate the traffic from to you internal kube serivce
+- We can use `serviceentry` , a crd from istio that maake a bridge between virtual service and external service
+
+```yaml
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: app1-vm
+spec:
+  hosts:
+  - app1.vm.local
+  location: MESH_EXTERNAL
+  ports:
+  - number: 80
+    name: http
+    protocol: HTTP
+  resolution: DNS
+```
+
+Then we can apply `canary` strategy with 90 to ext and 10 internal
+
+#### Mirror
+
+- But first we need to use `mirror`:
+  - It gets the traffic to k8s as to vm, but with no responses get back to the user
+  - It show how the traffic will be in k8s with real test
+
+```yaml
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: app1
+spec:
+  hosts:
+  - app1.yourdomain.com
+  gateways:
+  - your-gateway
+  http:
+  - route:
+    - destination:
+        host: app1.vm.local
+    mirror:
+      host: app1.k8s.svc.cluster.local
+```
+
+- Then apply the canary
+
+```yaml
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: app1
+spec:
+  hosts:
+  - app1.yourdomain.com
+  gateways:
+  - your-gateway
+  http:
+  - route:
+    - destination:
+        host: app1.vm.local
+      weight: 90
+    - destination:
+        host: app1.k8s.svc.cluster.local
+      weight: 10
+```
+
+
 ## Demo
 
 Vreate th gateway and v-svc then do the following to try to access
